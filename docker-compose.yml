@@ -1,0 +1,67 @@
+version: "3"
+services:
+  pihole1:
+    container_name: pihole1
+    image: pihole/pihole:latest
+    hostname: pihole1
+    networks:
+        dockervlan:
+          ipv4_address: 192.168.1.10 #IP of container
+    environment:
+      TZ: 'Europe/Amsterdam'
+      WEBPASSWORD: "Veryhardtoguessthis" #change this
+      REV_SERVER: 'true'
+      REV_SERVER_TARGET: '192.168.1.1' #IP of Router
+      REV_SERVER_CIDR: 192.168.1.0/24  #Subnet
+      DNS1: 192.168.1.11 #Change to own DNS
+      DNS2: 192.168.1.22 #Change to own DNS
+      DNSSEC: "true" # Enable DNSSEC
+      DNS_BOGUS_PRIV: "true"
+      ServerIP: "192.168.1.10"  #IP of container
+      IPv6: "false"
+      DNSMASQ_LISTENING: "all" 
+    volumes:
+      - 'pihole1/:/etc/pihole/'
+      - 'pihole1_etc-dnsmasq.d/:/etc/dnsmasq.d/'
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+
+
+########################################################################################################  
+########################################################################################################  
+                                  #VOLUME AND NETWORKS SETUP BELOW.
+                                  #DO NOT DELETE
+########################################################################################################  
+########################################################################################################  
+
+volumes:
+    pihole1:
+    pihole1_etc-dnsmasq.d:
+
+########################################################################################################  
+########################################################################################################  
+    #CREATES NEW MACVLAN NETWORK Within DOCKER WITH NAME DOCKAERVLAN ON VLAN0/SUBNET 192.168.1.0/24
+########################################################################################################  
+    #Change if required
+########################################################################################################  
+
+networks:
+  dockervlan:
+    driver: null
+    driver_opts:
+      parent: eno1
+    ipam:
+      config:
+        - subnet: "192.168.1.0/24"
+          ip_range: 192.168.1.1/24
+          gateway: "192.168.1.1"
+  dockervlan:
+    driver: macvlan
+    driver_opts:
+      parent: eno1
+    ipam:
+      config:
+        - subnet: "192.168.1.0/24"
+          ip_range: 192.168.1.1/24
+          gateway: "192.168.1.1"
